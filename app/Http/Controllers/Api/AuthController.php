@@ -21,7 +21,7 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create($request->validated());
-        $token = Auth::login($user);
+        $token = Auth::guard('api')->login($user);
 
         return $this->createdResponse(
             data: [
@@ -40,13 +40,13 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (! $token = Auth::attempt($credentials)) {
+        if (! $token = Auth::guard('api')->attempt($credentials)) {
             return $this->unauthorizedResponse('Invalid credentials.');
         }
 
         return $this->successResponse(
             data: [
-                'user' => new UserResource(Auth::user()),
+                'user' => new UserResource(Auth::guard('api')->user()),
                 'token' => $token,
                 'type' => 'bearer',
             ],
@@ -59,7 +59,7 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
-        Auth::logout();
+        Auth::guard('api')->logout();
 
         return $this->messageResponse('Logged out successfully.');
     }
@@ -70,7 +70,7 @@ class AuthController extends Controller
     public function me(): JsonResponse
     {
         return $this->successResponse(
-            data: ['user' => new UserResource(Auth::user())],
+            data: ['user' => new UserResource(Auth::guard('api')->user())],
         );
     }
 }
